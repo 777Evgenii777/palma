@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Calendar, User, Heart, Phone, Briefcase } from 'lucide-react';
+import { Plus, Calendar, User, Heart, Phone, Briefcase, Image, ShieldAlert } from 'lucide-react'; // Добавили иконки
 import NeonButton from './NeonButton';
 import { Birthday } from '../types';
 
@@ -8,17 +8,7 @@ interface AddBirthdayFormProps {
 }
 
 const RELATIONSHIP_OPTIONS = [
-  'Официант',
-  'Кухня',
-  'Мойка',
-  'Админ',
-  'Папа',
-  'Мама',
-  'Брат',
-  'Сестра',
-  'Кошка',
-  'Собака',
-  'Свой вариант'
+  'Официант', 'Кухня', 'Мойка', 'Админ', 'Папа', 'Мама', 'Брат', 'Сестра', 'Кошка', 'Собака', 'Свой вариант'
 ];
 
 const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
@@ -27,6 +17,10 @@ const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
   const [phone, setPhone] = useState('');
   const [relationshipType, setRelationshipType] = useState(RELATIONSHIP_OPTIONS[0]);
   const [customRelationship, setCustomRelationship] = useState('');
+  
+  // --- НОВЫЕ ПОЛЯ ---
+  const [avatar, setAvatar] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,24 +29,30 @@ const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
     const finalRelationship = relationshipType === 'Свой вариант' ? customRelationship : relationshipType;
 
     const newBirthday: Birthday = {
-      id: crypto.randomUUID(),
+      id: Date.now().toString(36) + Math.random().toString(36).substring(2),
       name,
       date,
       relationship: finalRelationship || 'Семья',
-      phoneNumber: phone
+      phoneNumber: phone,
+      // --- ПЕРЕДАЕМ НОВЫЕ ДАННЫЕ ---
+      avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`, // Если пусто, будет авто-аватар
+      expiryDate: expiryDate || undefined 
     };
 
     onAdd(newBirthday);
+    
+    // Сброс всех полей
     setName('');
     setDate('');
     setPhone('');
+    setAvatar('');
+    setExpiryDate('');
     setRelationshipType(RELATIONSHIP_OPTIONS[0]);
     setCustomRelationship('');
   };
 
   return (
     <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-md border-2 border-amber-600/30 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative overflow-hidden group rounded-sm">
-      {/* Decorative corner */}
       <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-amber-500/20 to-transparent -mr-8 -mt-8 rotate-45"></div>
       
       <h2 className="text-2xl font-mafia text-amber-700 mb-6 uppercase tracking-widest border-b border-amber-200 pb-2">
@@ -60,7 +60,7 @@ const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
       </h2>
 
       <div className="space-y-4">
-        {/* Name */}
+        {/* Имя */}
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
           <input
@@ -73,19 +73,44 @@ const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
           />
         </div>
 
-        {/* Date */}
+        {/* Дата рождения */}
         <div className="relative">
           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-amber-700/30 pointer-events-none">ДР</span>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full bg-orange-50/50 border border-amber-200 text-amber-900 pl-10 pr-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder-amber-900/40 rounded-sm"
+            className="w-full bg-orange-50/50 border border-amber-200 text-amber-900 pl-10 pr-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all rounded-sm"
             required
           />
         </div>
 
-        {/* Phone */}
+        {/* --- НОВОЕ: Ссылка на аватар --- */}
+        <div className="relative">
+          <Image className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
+          <input
+            type="url"
+            placeholder="Ссылка на фото (URL)"
+            value={avatar}
+            onChange={(e) => setAvatar(e.target.value)}
+            className="w-full bg-orange-50/50 border border-amber-200 text-amber-900 pl-10 pr-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder-amber-900/40 rounded-sm"
+          />
+        </div>
+
+        {/* --- НОВОЕ: Дата окончания контракта --- */}
+        <div className="relative">
+          <ShieldAlert className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-red-700/30 pointer-events-none">Контракт</span>
+          <input
+            type="date"
+            value={expiryDate}
+            onChange={(e) => setExpiryDate(e.target.value)}
+            className="w-full bg-orange-50/50 border border-amber-200 text-amber-900 pl-10 pr-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all rounded-sm"
+          />
+        </div>
+
+        {/* Телефон */}
         <div className="relative">
           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
           <input
@@ -97,7 +122,7 @@ const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
           />
         </div>
 
-        {/* Relationship Select */}
+        {/* Роль */}
         <div className="relative">
           <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
           <select 
@@ -112,7 +137,6 @@ const AddBirthdayForm: React.FC<AddBirthdayFormProps> = ({ onAdd }) => {
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-amber-700/50 text-xs">▼</div>
         </div>
 
-        {/* Custom Relationship Input */}
         {relationshipType === 'Свой вариант' && (
           <div className="relative animate-in fade-in slide-in-from-top-2 duration-300">
             <Heart className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700/50 w-5 h-5" />
