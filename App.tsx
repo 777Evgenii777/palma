@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, CalendarClock, Sparkles, Sun, Phone, User, ShieldAlert } from 'lucide-react'; // Добавил ShieldAlert
+import { Trash2, CalendarClock, Sparkles, Sun, Phone, User, ShieldAlert } from 'lucide-react';
 import AddBirthdayForm from './components/AddBirthdayForm';
 import GeminiModal from './components/GeminiModal';
 import { Birthday } from './types';
+
+const calculateDaysUntil = (dateString: string) => {
+  const today = new Date();
+  const [year, month, day] = dateString.split('-').map(Number);
+  const nextBirthday = new Date(today.getFullYear(), month - 1, day);
+
+  if (nextBirthday < today) {
+    nextBirthday.setFullYear(today.getFullYear() + 1);
+  }
+
+  const diffTime = nextBirthday.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays === 365 || diffDays === 0 ? "0" : diffDays;
+};
 
 const App: React.FC = () => {
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
@@ -32,7 +46,6 @@ const App: React.FC = () => {
     setBirthdays(prev => prev.filter(b => b.id !== id));
   };
 
-  // --- НОВАЯ ФУНКЦИЯ: Расчет срока контракта ---
   const getExpiryInfo = (expiryDateStr?: string) => {
     if (!expiryDateStr) return null;
     const today = new Date();
@@ -84,15 +97,13 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-orange-400 via-amber-200 to-amber-100 text-amber-900 font-sans selection:bg-amber-300">
-      
-      {/* Background Elements & Silhouettes */}
       <div className="absolute top-10 right-10 w-40 h-40 bg-yellow-300 rounded-full blur-2xl opacity-60"></div>
       
       <div className="max-w-6xl mx-auto p-4 md:p-8 relative z-10">
         <header className="mb-12 text-center">
           <div className="inline-flex items-center justify-center p-3 mb-4 bg-white/30 backdrop-blur-sm rounded-full shadow-lg border border-white/50">
-             <Sun className="w-8 h-8 text-orange-500 mr-2" />
-             <span className="text-orange-800 font-bold tracking-widest text-xs uppercase">Summer Vibe 1984</span>
+             <ShieldAlert className="w-8 h-8 text-orange-500 mr-2" />
+             <span className="text-orange-800 font-bold tracking-widest text-xs uppercase">Дни Рождения Семьи by Jonny</span>
           </div>
           <h1 className="font-mafia text-5xl md:text-7xl font-bold text-amber-900 mb-2 drop-shadow-sm">Cosa Nostra</h1>
           <p className="text-amber-800 font-medium tracking-[0.3em] uppercase text-sm md:text-base">Семейная База</p>
@@ -115,7 +126,6 @@ const App: React.FC = () => {
                   const { daysRemaining, age, nextDate } = getBirthdayInfo(birthday.date);
                   const expiryInfo = getExpiryInfo(birthday.expiryDate);
                   const isToday = daysRemaining === 0;
-                  const isSoon = daysRemaining > 0 && daysRemaining <= 7;
 
                   return (
                     <div 
@@ -125,8 +135,17 @@ const App: React.FC = () => {
                       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] pointer-events-none"></div>
 
                       <div className="relative z-10">
+                        {/* Тот самый счетчик из старой версии */}
+                        <div className="absolute -top-2 -right-1 text-right select-none pointer-events-none">
+                          <div className="text-6xl font-serif text-amber-900/[0.08] leading-none tracking-tighter">
+                            {calculateDaysUntil(birthday.date)}
+                          </div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-amber-900/30 mt-1 mr-1">
+                            дней
+                          </div>
+                        </div>
+
                         <div className="flex gap-4 mb-4">
-                          {/* --- АВАТАРКА --- */}
                           <div className="w-16 h-16 rounded-full border-2 border-amber-800/10 overflow-hidden bg-amber-50 flex-shrink-0 shadow-inner">
                             {birthday.avatar ? (
                               <img src={birthday.avatar} alt={birthday.name} className="w-full h-full object-cover" />
@@ -164,7 +183,6 @@ const App: React.FC = () => {
                               <span className="font-serif text-amber-900">{age}</span>
                             </div>
                             
-                          {/* --- НОВОЕ: БЛОК КОНТРАКТА --- */}
                             {expiryInfo && (
                               <>
                                 <div className="w-px h-8 bg-amber-200"></div>
@@ -179,7 +197,6 @@ const App: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Кнопки действий */}
                         <div className="absolute bottom-4 right-4 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white/80 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-amber-100">
                           <button 
                             onClick={() => handleAiClick(birthday)}
